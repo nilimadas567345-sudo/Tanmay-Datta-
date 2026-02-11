@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Modality, GenerateContentResponse, GroundingChunk } from "@google/genai";
-import { ChatMessage, MessageType, Sender, AppMode } from '../types';
+import { ChatMessage, MessageType, Sender, AppMode, UserSettings } from '../types';
 
 // Constants
 export const STARTUP_MESSAGE: ChatMessage = {
@@ -12,11 +12,10 @@ export const STARTUP_MESSAGE: ChatMessage = {
 };
 
 // Models Configuration
-const MODEL_TEXT_FAST = 'gemini-flash-lite-latest'; // Low latency for Chat/Audio
-const MODEL_TEXT_THINKING = 'gemini-3-pro-preview'; // High reasoning for Task
-const MODEL_SEARCH = 'gemini-2.5-flash'; // Search Grounding
-const MODEL_VISION = 'gemini-2.5-flash'; // Image Analysis
-const MODEL_IMAGE_GEN = 'gemini-2.5-flash-image'; // Nano Banana for Gen & Edit
+const MODEL_TEXT_FAST = 'gemini-3-flash-preview';
+const MODEL_TEXT_PRO = 'gemini-3-pro-preview';
+const MODEL_VISION = 'gemini-2.5-flash';
+const MODEL_IMAGE_GEN = 'gemini-2.5-flash-image';
 
 // Utility Functions
 export const fileToBase64 = (file: File): Promise<string> =>
@@ -34,7 +33,6 @@ export const getMimeType = (file: File): string => {
     return file.type;
 };
 
-
 // Gemini Service
 let ai: GoogleGenAI;
 try {
@@ -44,33 +42,32 @@ try {
 }
 
 export const GeminiService = {
-  generateChatResponse: async (prompt: string, mode: AppMode): Promise<string> => {
+  generateChatResponse: async (prompt: string, mode: AppMode, settings: UserSettings): Promise<string> => {
     if (!ai) throw new Error("Gemini AI not initialized.");
 
-    // Thinking Mode for Task & Productivity
-    if (mode === AppMode.Task) {
-        const response = await ai.models.generateContent({
-            model: MODEL_TEXT_THINKING,
-            contents: prompt,
-            config: {
-                thinkingConfig: { thinkingBudget: 32768 }, // Max thinking budget
-            }
-        });
-        return response.text || "I thought about it, but couldn't generate a response.";
-    }
+    const model = (settings.highReasoningMode || mode === AppMode.Task) ? MODEL_TEXT_PRO : MODEL_TEXT_FAST;
+    const tools: any[] = [];
+    
+    if (settings.extensions.googleSearch) tools.push({ googleSearch: {} });
+    if (settings.extensions.googleMaps) tools.push({ googleMaps: {} });
 
-    // Fast Mode for Chat, Audio
     const response = await ai.models.generateContent({
-      model: MODEL_TEXT_FAST,
+      model: model,
       contents: prompt,
+      config: {
+        tools: tools.length > 0 ? tools : undefined,
+        thinkingConfig: (model === MODEL_TEXT_PRO) ? { thinkingBudget: 16000 } : undefined,
+      }
     });
+    
     return response.text || "";
   },
 
-  generateSearchResponse: async (prompt: string): Promise<{ text: string; citations: { uri: string; title: string }[] }> => {
+  generateSearchResponse: async (prompt: string, settings: UserSettings): Promise<{ text: string; citations: { uri: string; title: string }[] }> => {
     if (!ai) throw new Error("Gemini AI not initialized.");
+    
     const response = await ai.models.generateContent({
-      model: MODEL_SEARCH,
+      model: MODEL_TEXT_FAST,
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -83,32 +80,21 @@ export const GeminiService = {
       .filter(web => web?.uri && web?.title)
       .map(web => ({ uri: web!.uri!, title: web!.title! }));
 
-    return { text: response.text || "No search results found.", citations };
+    return { text: response.text || "No results found.", citations };
   },
 
   generateImage: async (prompt: string, imageBase64?: string, mimeType?: string): Promise<string> => {
     if (!ai) throw new Error("Gemini AI not initialized.");
     
     const parts: any[] = [];
-    
-    // Image Editing: If an image is provided, add it to the request
     if (imageBase64 && mimeType) {
-        parts.push({
-            inlineData: {
-                mimeType: mimeType,
-                data: imageBase64
-            }
-        });
+        parts.push({ inlineData: { mimeType, data: imageBase64 } });
     }
-    
-    // Add the text prompt
     parts.push({ text: prompt });
 
     const response = await ai.models.generateContent({
       model: MODEL_IMAGE_GEN,
-      contents: {
-        parts: parts,
-      },
+      contents: { parts: parts },
       config: {
         responseModalities: [Modality.IMAGE],
       },
@@ -116,8 +102,7 @@ export const GeminiService = {
 
     for (const part of response.candidates?.[0]?.content.parts || []) {
       if (part.inlineData) {
-        const base64ImageBytes: string = part.inlineData.data;
-        return `data:image/png;base64,${base64ImageBytes}`;
+        return `data:image/png;base64,${part.inlineData.data}`;
       }
     }
     throw new Error('No image was generated.');
@@ -125,17 +110,14 @@ export const GeminiService = {
 
   analyzeImage: async (prompt: string, imageBase64: string, mimeType: string): Promise<string> => {
     if (!ai) throw new Error("Gemini AI not initialized.");
-    const imagePart = {
-      inlineData: {
-        mimeType,
-        data: imageBase64,
-      },
-    };
-    const textPart = { text: prompt };
-    
     const response = await ai.models.generateContent({
       model: MODEL_VISION,
-      contents: { parts: [textPart, imagePart] },
+      contents: { 
+        parts: [
+          { text: prompt }, 
+          { inlineData: { mimeType, data: imageBase64 } }
+        ] 
+      },
     });
     return response.text || "I couldn't analyze the image.";
   },

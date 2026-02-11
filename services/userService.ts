@@ -17,6 +17,16 @@ const createInitialState = (): AppState => {
         settings: {
             theme: systemPrefersDark ? 'dark' : 'light',
             forceOffline: false,
+            realTimeResponses: true,
+            saveHistory: true,
+            preferredLanguage: 'English',
+            voiceName: 'Zephyr',
+            extensions: {
+                googleSearch: true,
+                googleMaps: true,
+                workspace: false,
+            },
+            highReasoningMode: false,
         },
         chatHistory: [STARTUP_MESSAGE],
         downloadedModels: [],
@@ -32,11 +42,17 @@ export const UserService = {
                 return createInitialState();
             }
             const parsedState = JSON.parse(serializedState);
-            // Basic validation to ensure state shape is correct
-            if (parsedState.settings && parsedState.chatHistory && Array.isArray(parsedState.downloadedModels)) {
-                // Backward compatibility: Ensure imageHistory exists
+            // Basic validation and migration
+            if (parsedState.settings && parsedState.chatHistory) {
+                // Ensure all new setting fields exist
+                const defaults = createInitialState().settings;
+                parsedState.settings = { ...defaults, ...parsedState.settings };
+                
                 if (!Array.isArray(parsedState.imageHistory)) {
                     parsedState.imageHistory = [];
+                }
+                if (!Array.isArray(parsedState.downloadedModels)) {
+                    parsedState.downloadedModels = [];
                 }
                 return parsedState;
             }
@@ -49,9 +65,15 @@ export const UserService = {
 
     saveState: (state: AppState) => {
         try {
-            const serializedState = JSON.stringify(state);
+            // Respect the 'saveHistory' privacy setting
+            const stateToSave = { ...state };
+            if (!state.settings.saveHistory) {
+                stateToSave.chatHistory = [STARTUP_MESSAGE];
+                stateToSave.imageHistory = [];
+            }
+            
+            const serializedState = JSON.stringify(stateToSave);
             localStorage.setItem(APP_STATE_KEY, serializedState);
-            // Save theme separately for instant theme loading (FOUC prevention)
             localStorage.setItem('theme', state.settings.theme);
         } catch (err) {
             console.error("Could not save state to localStorage", err);

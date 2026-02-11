@@ -57,4 +57,14 @@ export interface OfflineModel {
 export interface UserSettings {
   theme: 'light' | 'dark';
   forceOffline: boolean;
+  realTimeResponses: boolean;
+  saveHistory: boolean;
+  preferredLanguage: string;
+  voiceName: 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir';
+  extensions: {
+    googleSearch: boolean;
+    googleMaps: boolean;
+    workspace: boolean;
+  };
+  highReasoningMode: boolean; // Pro/Advanced toggle
 }

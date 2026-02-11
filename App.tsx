@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { AppMode, ChatMessage, MessageType, Sender, OfflineModel, UserSettings, GeneratedImage } from './types';
 import { GeminiService, STARTUP_MESSAGE, fileToBase64, getMimeType } from './services/geminiService';
@@ -34,20 +33,39 @@ const Icons = {
   HF: () => <span className="text-xl">🤗</span>,
   User: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
   Settings: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1-2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-  Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.59a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>,
-  Mic: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>,
-  Send: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
+  Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.59a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>,
+  Mic: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>,
+  Send: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
   History: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>,
-  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
-  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54Z"/></svg>,
-  Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
-  Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-  Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
+  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54Z"/></svg>,
+  Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+  Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
   Star: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
   Heart: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-pink-500"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
   Sync: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>,
   External: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+  Language: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+  Puzzle: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="M12 18v2"/><path d="M2 12h2"/><path d="M18 12h2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="m17.7 4.9-1.4 1.4"/><path d="m4.9 17.7 1.4 1.4"/></svg>,
+  Privacy: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  Voice: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+  Translate: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>,
+  Code: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+  Mail: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
+  Pencil: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>,
+  Sort: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-3 3-3-3"/><path d="M12 3v18"/><path d="m9 6 3-3 3 3"/></svg>,
 };
+
+// --- DATA ---
+const QUICK_TASKS = [
+  { id: 'summarize', label: 'Summarize', icon: <Icons.Brain />, prompt: 'Can you summarize the following text for me: ' },
+  { id: 'translate', label: 'Translate', icon: <Icons.Translate />, prompt: 'Please translate the following to Spanish: ' },
+  { id: 'code', label: 'Explain Code', icon: <Icons.Code />, prompt: 'Could you explain how this piece of code works: ' },
+  { id: 'email', label: 'Write Email', icon: <Icons.Mail />, prompt: 'Help me write a professional email about: ' },
+  { id: 'story', label: 'Creative Story', icon: <Icons.Pencil />, prompt: 'Write a short creative story about: ' },
+  { id: 'analyze', label: 'Analyze Data', icon: <Icons.Search />, prompt: 'Analyze the following data points: ' },
+];
 
 // --- COMPONENTS ---
 
@@ -138,7 +156,9 @@ const MessageItem: React.FC<{ message: ChatMessage }> = ({ message }) => {
   if (message.type === MessageType.Loading) {
     return (
       <div className="flex gap-4 p-6 animate-pulse">
-        <div className="mt-1"><Icons.GeminiStar /></div>
+        <div className="mt-1 flex-shrink-0">
+          <Icons.GeminiStar />
+        </div>
         <div className="flex-1">
           <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/4 mb-2"></div>
           <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
@@ -177,6 +197,8 @@ const MessageItem: React.FC<{ message: ChatMessage }> = ({ message }) => {
 
 // --- APP COMPONENT ---
 
+type SortBy = 'name' | 'likes' | 'downloads';
+
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(UserService.loadState);
   const [currentMode, setCurrentMode] = useState<AppMode>(AppMode.Chat);
@@ -189,6 +211,7 @@ const App: React.FC = () => {
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [downloadingStatus, setDownloadingStatus] = useState<Record<string, number>>({});
   const [hubSearchQuery, setHubSearchQuery] = useState('');
+  const [hubSortBy, setHubSortBy] = useState<SortBy>('downloads');
   const [hfModelsData, setHfModelsData] = useState<Record<string, { likes: number, downloads: number }>>({});
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -276,11 +299,11 @@ const App: React.FC = () => {
         case AppMode.Chat:
         case AppMode.Audio:
         case AppMode.Task:
-          response = await GeminiService.generateChatResponse(text, currentMode);
+          response = await GeminiService.generateChatResponse(text, currentMode, settings);
           addMessage({ sender: Sender.AI, type: MessageType.Text, text: response });
           break;
         case AppMode.Search:
-          const sResp = await GeminiService.generateSearchResponse(text);
+          const sResp = await GeminiService.generateSearchResponse(text, settings);
           addMessage({ sender: Sender.AI, type: MessageType.Text, text: sResp.text, citations: sResp.citations });
           break;
         case AppMode.ImageGen:
@@ -338,15 +361,48 @@ const App: React.FC = () => {
     recognitionRef.current.start();
   };
 
+  const parseHFValue = (val: string | number | undefined): number => {
+    if (val === undefined) return 0;
+    if (typeof val === 'number') return val;
+    const cleaned = val.toLowerCase().replace(/[^0-9.mk]/g, '');
+    if (cleaned.endsWith('m')) return parseFloat(cleaned) * 1000000;
+    if (cleaned.endsWith('k')) return parseFloat(cleaned) * 1000;
+    return parseFloat(cleaned) || 0;
+  };
+
   const filteredModels = useMemo(() => {
-    if (!hubSearchQuery) return OFFLINE_MODELS;
-    const query = hubSearchQuery.toLowerCase();
-    return OFFLINE_MODELS.filter(m => 
-      m.name.toLowerCase().includes(query) || 
-      m.hfRepo.toLowerCase().includes(query) ||
-      m.tags?.some(t => t.toLowerCase().includes(query))
-    );
-  }, [hubSearchQuery]);
+    let filtered = OFFLINE_MODELS;
+    
+    // Search filter
+    if (hubSearchQuery) {
+      const query = hubSearchQuery.toLowerCase();
+      filtered = filtered.filter(m => 
+        m.name.toLowerCase().includes(query) || 
+        m.hfRepo.toLowerCase().includes(query) ||
+        m.tags?.some(t => t.toLowerCase().includes(query))
+      );
+    }
+
+    // Sort filter
+    return [...filtered].sort((a, b) => {
+      const statsA = hfModelsData[a.hfRepo];
+      const statsB = hfModelsData[b.hfRepo];
+
+      switch (hubSortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'likes':
+          const likesA = statsA?.likes ?? parseHFValue(a.likes ?? a.stars);
+          const likesB = statsB?.likes ?? parseHFValue(b.likes ?? b.stars);
+          return likesB - likesA;
+        case 'downloads':
+        default:
+          const downloadsA = statsA?.downloads ?? parseHFValue(a.downloads);
+          const downloadsB = statsB?.downloads ?? parseHFValue(b.downloads);
+          return downloadsB - downloadsA;
+      }
+    });
+  }, [hubSearchQuery, hubSortBy, hfModelsData]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -358,6 +414,8 @@ const App: React.FC = () => {
     return num.toString();
   };
 
+  const canSend = inputText.trim().length > 0 || attachedFile !== null;
+
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-[#131314] transition-colors overflow-hidden">
       <Header 
@@ -368,7 +426,7 @@ const App: React.FC = () => {
         onModeChange={setCurrentMode}
       />
 
-      <main ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden pt-16 pb-32 scroll-smooth">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden pt-16 pb-48 scroll-smooth no-scrollbar">
         {chatHistory.length <= 1 && !isLoading ? (
           <LandingState onSuggest={(t) => handleSend(t)} />
         ) : (
@@ -379,58 +437,102 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white dark:from-[#131314] via-white/90 dark:via-[#131314]/90 to-transparent">
-        <div className="max-w-3xl mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white dark:from-[#131314] via-white/95 dark:via-[#131314]/95 to-transparent z-10">
+        <div className="max-w-3xl mx-auto space-y-3">
+          
+          {/* Quick Tasks Scrollable */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 animate-fade-in px-1">
+            {QUICK_TASKS.map(task => (
+              <button
+                key={task.id}
+                onClick={() => setInputText(task.prompt)}
+                className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-sm text-xs font-semibold text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-500 transition-all active:scale-95"
+              >
+                {task.icon}
+                <span>{task.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Attached File Preview */}
           {attachedFile && (
-            <div className="mb-2 p-2 bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
-              <div className="flex items-center gap-2 truncate">
-                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center text-blue-500">
-                    <Icons.Paperclip />
-                 </div>
-                 <span className="text-xs font-medium truncate max-w-[200px] text-gray-700 dark:text-gray-300">{attachedFile.name}</span>
+            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-2xl animate-fade-in-up">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-500">
+                <Icons.Paperclip />
               </div>
-              <button onClick={() => setAttachedFile(null)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"><Icons.Close /></button>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold truncate text-gray-800 dark:text-gray-200">{attachedFile.name}</p>
+                <p className="text-[10px] text-gray-500 font-mono uppercase">{(attachedFile.size / 1024).toFixed(1)} KB</p>
+              </div>
+              <button 
+                onClick={() => setAttachedFile(null)} 
+                className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+                title="Remove file"
+              >
+                <Icons.Close />
+              </button>
             </div>
           )}
-          <div className={`relative flex items-center bg-gray-100 dark:bg-[#1e1f20] rounded-[32px] px-6 py-3 transition-all shadow-sm focus-within:shadow-md border border-transparent focus-within:border-gray-200 dark:focus-within:border-gray-700 ${isListening ? 'ring-2 ring-blue-500' : ''}`}>
+
+          {/* Main Input Field */}
+          <div className={`
+            relative flex items-center gap-3 bg-gray-100 dark:bg-[#1e1f20] rounded-[28px] px-5 py-3.5 transition-all shadow-sm
+            ${isListening ? 'ring-2 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'border border-transparent hover:border-gray-200 dark:hover:border-gray-700'}
+            focus-within:bg-white dark:focus-within:bg-gray-800 focus-within:shadow-lg focus-within:border-blue-500/30
+          `}>
+            {isListening && (
+              <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none">
+                 <div className="absolute inset-0 bg-blue-500/5 animate-pulse" />
+              </div>
+            )}
+
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="text-gray-500 dark:text-gray-400 hover:text-blue-500 p-1 transition-colors"
+              className="text-gray-400 hover:text-blue-500 transition-all active:scale-90"
               title="Attach File"
             >
               <Icons.Paperclip />
             </button>
-            <input 
-              type="file" ref={fileInputRef} className="hidden" 
-              onChange={(e) => e.target.files?.[0] && setAttachedFile(e.target.files[0])} 
-            />
-            <input 
-              type="text" 
-              placeholder={isListening ? "Listening..." : "Ask Friday anything..."}
-              className="flex-1 bg-transparent border-none outline-none px-4 text-gray-800 dark:text-gray-200 placeholder-gray-500"
+            <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && setAttachedFile(e.target.files[0])} />
+            
+            <textarea 
+              rows={1}
+              placeholder={isListening ? "I'm listening..." : "Ask Friday anything..."}
+              className="flex-1 bg-transparent border-none outline-none text-sm text-gray-800 dark:text-gray-200 placeholder-gray-500 resize-none max-h-32 scrollbar-hide"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText, attachedFile || undefined)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(inputText, attachedFile || undefined);
+                }
+              }}
             />
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-1">
               <button 
                 onClick={isListening ? () => recognitionRef.current?.stop() : startListening}
-                className={`p-1 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-gray-500 dark:text-gray-400 hover:text-blue-500'}`}
+                className={`p-2 rounded-full transition-all active:scale-90 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-blue-500'}`}
               >
                 <Icons.Mic />
               </button>
-              {(inputText.trim() || attachedFile) && (
-                <button 
-                  onClick={() => handleSend(inputText, attachedFile || undefined)}
-                  className="p-1 text-blue-500 hover:scale-110 transition-transform"
-                >
-                  <Icons.Send />
-                </button>
-              )}
+              
+              <button 
+                disabled={!canSend || isLoading}
+                onClick={() => handleSend(inputText, attachedFile || undefined)}
+                className={`
+                  p-2.5 rounded-full transition-all transform
+                  ${canSend ? 'bg-blue-500 text-white shadow-md hover:scale-105 active:scale-95' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 opacity-50 cursor-not-allowed'}
+                  ${isLoading ? 'animate-pulse' : ''}
+                `}
+              >
+                <Icons.Send />
+              </button>
             </div>
           </div>
-          <p className="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest font-medium opacity-70">
-            Friday supports local execution of SOTA models from Hugging Face Hub.
+
+          <p className="text-[9px] text-center text-gray-400 uppercase tracking-[0.2em] font-black opacity-60">
+            {isOffline || settings.forceOffline ? "Local Edge Mode Active" : "Friday Cloud Hybrid Connected"}
           </p>
         </div>
       </div>
@@ -457,20 +559,35 @@ const App: React.FC = () => {
               <button onClick={() => setIsModelHubOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors self-end md:self-auto"><Icons.Close /></button>
             </div>
 
-            <div className="relative mb-6">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                <Icons.Search />
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Icons.Search />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Search models like 'Gemma'..."
+                  className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-2xl py-3 pl-11 pr-4 text-sm outline-none focus:ring-2 ring-blue-500/50 transition-all"
+                  value={hubSearchQuery}
+                  onChange={e => setHubSearchQuery(e.target.value)}
+                />
               </div>
-              <input 
-                type="text" 
-                placeholder="Search models like 'Gemma' or 'Stable Diffusion'..."
-                className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-2xl py-3 pl-12 pr-4 text-sm outline-none focus:ring-2 ring-blue-500/50 transition-all shadow-inner"
-                value={hubSearchQuery}
-                onChange={e => setHubSearchQuery(e.target.value)}
-              />
+              <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-2 self-start md:self-auto border border-transparent focus-within:border-blue-500/30">
+                <Icons.Sort />
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter shrink-0">Sort:</span>
+                <select 
+                  className="bg-transparent text-sm font-bold text-gray-800 dark:text-gray-200 outline-none cursor-pointer"
+                  value={hubSortBy}
+                  onChange={(e) => setHubSortBy(e.target.value as SortBy)}
+                >
+                  <option value="downloads">Downloads</option>
+                  <option value="likes">Likes</option>
+                  <option value="name">Name</option>
+                </select>
+              </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar no-scrollbar">
               {filteredModels.map(m => {
                 const isDownloaded = downloadedModels.has(m.id);
                 const progress = downloadingStatus[m.id];
@@ -550,19 +667,9 @@ const App: React.FC = () => {
               {filteredModels.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-24 text-gray-500">
                   <div className="mb-4 opacity-10 scale-[2]"><Icons.HF /></div>
-                  <p className="font-bold uppercase tracking-widest text-xs">No edge models found in repository</p>
+                  <p className="font-bold uppercase tracking-widest text-xs text-center">No edge models matching your search or sort.</p>
                 </div>
               )}
-            </div>
-            
-            <div className="mt-6 pt-4 border-t dark:border-gray-800 flex flex-col md:flex-row justify-between items-center gap-2">
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                Friday Hub | Secure Origin Storage Deployment
-              </p>
-              <div className="flex items-center gap-4 text-[10px] text-gray-400 font-bold">
-                <span>V3.0.4-EDGE</span>
-                <span>SYSTEM NPU: DETECTED</span>
-              </div>
             </div>
           </div>
         </div>
@@ -570,42 +677,119 @@ const App: React.FC = () => {
 
       {/* Settings Modal */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsSettingsOpen(false)}>
-           <div className="bg-white dark:bg-[#1e1f20] rounded-[28px] p-8 w-full max-w-md shadow-2xl border dark:border-gray-800" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-semibold tracking-tight">System Settings</h2>
-                <button onClick={() => setIsSettingsOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"><Icons.Close /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsSettingsOpen(false)}>
+           <div className="bg-white dark:bg-[#1e1f20] rounded-[28px] w-full max-w-2xl h-[85vh] shadow-2xl border dark:border-gray-800 flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+              
+              <div className="flex justify-between items-center p-6 border-b dark:border-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                    <Icons.Settings />
+                  </div>
+                  <h2 className="text-2xl font-bold tracking-tight">Friday Settings</h2>
+                </div>
+                <button onClick={() => setIsSettingsOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><Icons.Close /></button>
               </div>
-              <div className="space-y-6">
-                 <div className="flex justify-between items-center group">
-                    <div>
-                       <p className="font-bold text-sm">Dark Theme</p>
-                       <p className="text-xs text-gray-500 font-medium">Toggle system interface brightness</p>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+                
+                {/* Extensions Section */}
+                <section>
+                  <div className="flex items-center gap-2 mb-4 text-gray-400 uppercase tracking-widest text-[10px] font-black">
+                    <Icons.Puzzle />
+                    <span>Gemini Extensions</span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
+                      <div>
+                        <p className="font-bold text-sm">Google Search</p>
+                        <p className="text-xs text-gray-500">Get up-to-date info and news from the web</p>
+                      </div>
+                      <button 
+                        onClick={() => setAppState(p => ({...p, settings: {...p.settings, extensions: {...p.settings.extensions, googleSearch: !p.settings.extensions.googleSearch}}}))}
+                        className={`w-12 h-6 rounded-full transition-all relative ${settings.extensions.googleSearch ? 'bg-blue-600 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-gray-300 dark:bg-gray-700'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.extensions.googleSearch ? 'left-7' : 'left-1'}`} />
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => setAppState(p => ({...p, settings: {...p.settings, theme: p.settings.theme === 'dark' ? 'light' : 'dark'}}))} 
-                      className={`w-12 h-6 rounded-full transition-all relative shadow-inner ${settings.theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'}`}
-                    >
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${settings.theme === 'dark' ? 'left-7' : 'left-1'}`} />
-                    </button>
-                 </div>
-                 <div className="flex justify-between items-center group">
-                    <div>
-                       <p className="font-bold text-sm">Edge Priority (Force Offline)</p>
-                       <p className="text-xs text-gray-500 font-medium">Bypass cloud APIs for local Hub models</p>
+                    <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
+                      <div>
+                        <p className="font-bold text-sm">Google Maps</p>
+                        <p className="text-xs text-gray-500">Ground responses with real-world location data</p>
+                      </div>
+                      <button 
+                        onClick={() => setAppState(p => ({...p, settings: {...p.settings, extensions: {...p.settings.extensions, googleMaps: !p.settings.extensions.googleMaps}}}))}
+                        className={`w-12 h-6 rounded-full transition-all relative ${settings.extensions.googleMaps ? 'bg-blue-600 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-gray-300 dark:bg-gray-700'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.extensions.googleMaps ? 'left-7' : 'left-1'}`} />
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => setAppState(p => ({...p, settings: {...p.settings, forceOffline: !p.settings.forceOffline}}))} 
-                      className={`w-12 h-6 rounded-full transition-all relative shadow-inner ${settings.forceOffline ? 'bg-blue-600' : 'bg-gray-300'}`}
-                    >
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${settings.forceOffline ? 'left-7' : 'left-1'}`} />
-                    </button>
-                 </div>
-                 <div className="pt-6 border-t dark:border-gray-800">
-                    <button onClick={() => { setAppState(p => ({...p, chatHistory: [STARTUP_MESSAGE]})); setIsSettingsOpen(false); }} className="w-full py-3 bg-red-500/10 text-red-500 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-500/20 transition-all">
-                      Purge Local Logs
-                    </button>
-                 </div>
+                  </div>
+                </section>
+
+                {/* Performance & Logic Section */}
+                <section>
+                  <div className="flex items-center gap-2 mb-4 text-gray-400 uppercase tracking-widest text-[10px] font-black">
+                    <Icons.Brain />
+                    <span>Performance & Logic</span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
+                      <div>
+                        <p className="font-bold text-sm">Friday Pro (High Reasoning)</p>
+                        <p className="text-xs text-gray-500">Use Gemini Pro 3 for advanced problem solving</p>
+                      </div>
+                      <button 
+                        onClick={() => setAppState(p => ({...p, settings: {...p.settings, highReasoningMode: !p.settings.highReasoningMode}}))}
+                        className={`w-12 h-6 rounded-full transition-all relative ${settings.highReasoningMode ? 'bg-purple-600 shadow-[0_0_8px_rgba(147,51,234,0.5)]' : 'bg-gray-300 dark:bg-gray-700'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.highReasoningMode ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
+                      <div>
+                        <p className="font-bold text-sm">Real-time Responses</p>
+                        <p className="text-xs text-gray-500">Show answers as they are being generated</p>
+                      </div>
+                      <button 
+                        onClick={() => setAppState(p => ({...p, settings: {...p.settings, realTimeResponses: !p.settings.realTimeResponses}}))}
+                        className={`w-12 h-6 rounded-full transition-all relative ${settings.realTimeResponses ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.realTimeResponses ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
+                      <div>
+                        <p className="font-bold text-sm">Edge Priority (Force Offline)</p>
+                        <p className="text-xs text-gray-500 font-medium text-orange-500">Bypass cloud for local Hub models</p>
+                      </div>
+                      <button 
+                        onClick={() => setAppState(p => ({...p, settings: {...p.settings, forceOffline: !p.settings.forceOffline}}))} 
+                        className={`w-12 h-6 rounded-full transition-all relative shadow-inner ${settings.forceOffline ? 'bg-orange-600' : 'bg-gray-300'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${settings.forceOffline ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Voice Section */}
+                <section>
+                  <div className="flex items-center gap-2 mb-4 text-gray-400 uppercase tracking-widest text-[10px] font-black">
+                    <Icons.Voice />
+                    <span>Gemini Voice Settings</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir'].map(v => (
+                      <button 
+                        key={v}
+                        onClick={() => setAppState(p => ({...p, settings: {...p.settings, voiceName: v as any}}))}
+                        className={`px-3 py-4 rounded-xl border text-xs font-bold transition-all ${settings.voiceName === v ? 'bg-blue-500 text-white border-blue-600 shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-transparent hover:border-gray-300 dark:hover:border-gray-600'}`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </section>
               </div>
            </div>
         </div>
