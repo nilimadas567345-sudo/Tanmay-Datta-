@@ -1,0 +1,7 @@
+{
+  "name": "Friday - Personal AI Assistant",
+  "description": "A powerful, personal AI assistant named Friday with a WhatsApp-style UI. It supports multi-modal interactions including chat, search, image generation, and image analysis, powered by Gemini.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

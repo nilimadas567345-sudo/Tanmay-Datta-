@@ -1,0 +1,21 @@
+{
+  "name": "Friday - Personal AI Assistant",
+  "short_name": "Friday",
+  "description": "A powerful, personal AI assistant named Friday with a WhatsApp-style UI. It supports multi-modal interactions including chat, search, image generation, and image analysis, powered by Gemini.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#e5ddd5",
+  "theme_color": "#005E54",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

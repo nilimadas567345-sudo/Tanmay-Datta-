@@ -46,6 +46,12 @@ export interface OfflineModel {
   version: string;
   compatibility: string;
   isRecommended?: boolean;
+  hfRepo: string; // Required for connection
+  downloads?: string;
+  stars?: string;
+  likes?: number; // Real numeric likes from HF
+  tags?: string[];
+  lastSynced?: string;
 }
 
 export interface UserSettings {
