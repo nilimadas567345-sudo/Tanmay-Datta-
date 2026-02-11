@@ -53,6 +53,7 @@ const Icons = {
   Sort: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-3 3-3-3"/><path d="M12 3v18"/><path d="m9 6 3-3 3 3"/></svg>,
   General: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
   Planning: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
+  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
 };
 
 // --- DATA ---
@@ -177,7 +178,7 @@ const MessageItem: React.FC<{ message: ChatMessage }> = ({ message }) => {
   );
 };
 
-// --- MAIN APP COMPONENT ---
+// --- APP COMPONENT ---
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(UserService.loadState);
@@ -263,6 +264,7 @@ const App: React.FC = () => {
         const model = OFFLINE_MODELS.find(m => m.category === currentMode);
         if (model && downloadedModels.has(model.id)) {
           await new Promise(r => setTimeout(r, 1200));
+          const isHighPerf = model.id.includes('27b');
           const responseText = `[HF EDGE INFERENCE]\n\nProcessing Locally: ${model.name}\n\nFriday Status: On-device private execution enabled.\n\n(Simulated local execution on your browser's NPU sandbox for ${model.hfRepo}.)`;
           addMessage({ sender: Sender.AI, type: MessageType.Text, text: responseText });
           setIsLoading(false);
@@ -323,6 +325,16 @@ const App: React.FC = () => {
         return { ...prev, [modelId]: Math.min(100, current + step * (Math.random() + 0.2)) };
       });
     }, 100);
+  };
+
+  const handleUninstallModel = (modelId: string) => {
+    if (!downloadedModels.has(modelId)) return;
+    if (window.confirm(`Are you sure you want to remove ${modelId} from local storage?`)) {
+        setAppState(prev => ({
+            ...prev,
+            downloadedModels: prev.downloadedModels.filter(id => id !== modelId)
+        }));
+    }
   };
 
   const startListening = () => {
@@ -503,9 +515,18 @@ const App: React.FC = () => {
                           <span className="flex items-center gap-1"><Icons.Heart /> {(hfStats ? hfStats.likes : m.stars) || '-'}</span>
                         </div>
                       </div>
-                      <div className="w-full md:w-auto">
+                      <div className="w-full md:w-auto flex flex-col items-center gap-2">
                         {isDownloaded ? (
-                          <div className="flex items-center gap-2 text-green-600 font-bold text-xs uppercase bg-green-100 dark:bg-green-900/30 px-4 py-2 rounded-xl"><Icons.Check /> Local</div>
+                          <>
+                            <div className="flex items-center gap-2 text-green-600 font-bold text-xs uppercase bg-green-100 dark:bg-green-900/30 px-4 py-2 rounded-xl w-full justify-center"><Icons.Check /> Local</div>
+                            <button 
+                                onClick={() => handleUninstallModel(m.id)} 
+                                className="text-[10px] text-gray-400 hover:text-red-500 font-bold uppercase tracking-widest flex items-center gap-1 p-1 transition-colors"
+                                title="Remove local weights"
+                            >
+                                <Icons.Trash /> Remove
+                            </button>
+                          </>
                         ) : progress !== undefined ? (
                           <div className="w-full md:w-32 bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden shadow-inner"><div className="bg-blue-500 h-full transition-all" style={{width: `${progress}%`}} /></div>
                         ) : (
