@@ -7,6 +7,8 @@ export enum Sender {
 export enum MessageType {
   Text = 'text',
   Image = 'image',
+  Video = 'video',
+  Audio = 'audio',
   Error = 'error',
   Loading = 'loading',
 }
@@ -18,6 +20,8 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   imageUrl?: string;
+  videoUrl?: string;
+  audioUrl?: string;
   citations?: { uri: string; title: string }[];
 }
 
@@ -32,6 +36,7 @@ export enum AppMode {
   Chat = 'Chat',
   Search = 'Search',
   ImageGen = 'Image Generation',
+  VideoGen = 'Video Generation',
   ImageAnalysis = 'Image Analysis',
   Audio = 'Audio',
   Task = 'Task & Productivity',
@@ -61,6 +66,7 @@ export interface UserSettings {
   saveHistory: boolean;
   preferredLanguage: string;
   voiceName: 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir';
+  thinkingLevel: 'LOW' | 'HIGH';
   extensions: {
     googleSearch: boolean;
     googleMaps: boolean;

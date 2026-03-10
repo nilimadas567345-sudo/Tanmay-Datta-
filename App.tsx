@@ -54,6 +54,8 @@ const Icons = {
   General: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
   Planning: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
   Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
+  Video: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>,
+  Link: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
 };
 
 // --- DATA ---
@@ -89,13 +91,13 @@ const Header: React.FC<{
     </div>
     <div className="flex items-center gap-2">
       <div className="hidden lg:flex bg-gray-100 dark:bg-gray-800 rounded-full p-1 mr-2">
-        {Object.values(AppMode).map(mode => (
+        {[AppMode.Chat, AppMode.Search, AppMode.ImageGen, AppMode.VideoGen, AppMode.ImageAnalysis].map(mode => (
           <button
             key={mode}
             onClick={() => onModeChange(mode)}
-            className={`px-3 py-1 text-xs rounded-full transition-all ${currentMode === mode ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all ${currentMode === mode ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
           >
-            {mode}
+            {mode.split(' ')[0]}
           </button>
         ))}
       </div>
@@ -162,6 +164,8 @@ const MessageItem: React.FC<{ message: ChatMessage }> = ({ message }) => {
       <div className="flex-1 min-w-0">
         <div className="text-gray-800 dark:text-gray-200 text-[16px] leading-relaxed whitespace-pre-wrap break-words">
           {message.imageUrl && <img src={message.imageUrl} className="max-w-md w-full rounded-xl mb-4 border dark:border-gray-700 shadow-md" alt="Generated" />}
+          {message.videoUrl && <video src={message.videoUrl} controls className="max-w-md w-full rounded-xl mb-4 border dark:border-gray-700 shadow-md" />}
+          {message.audioUrl && <audio src={message.audioUrl} controls className="w-full mb-4" />}
           {message.text}
         </div>
         {message.citations && message.citations.length > 0 && (
@@ -193,9 +197,13 @@ const App: React.FC = () => {
   const [hubSortBy, setHubSortBy] = useState<SortBy>('downloads');
   const [hubSearchQuery, setHubSearchQuery] = useState('');
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [contextUrls, setContextUrls] = useState<string[]>([]);
+  const [urlInput, setUrlInput] = useState('');
+  const [isUrlInputOpen, setIsUrlInputOpen] = useState(false);
   const [downloadingStatus, setDownloadingStatus] = useState<Record<string, number>>({});
   const [hfModelsData, setHfModelsData] = useState<Record<string, { likes: number, downloads: number }>>({});
   const [isSyncing, setIsSyncing] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | undefined>(undefined);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -250,6 +258,15 @@ const App: React.FC = () => {
     setAppState(prev => ({ ...prev, chatHistory: [...prev.chatHistory, newMessage] }));
   }, []);
 
+  useEffect(() => {
+    if (settings.extensions.googleMaps && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        (err) => console.error("Location access denied", err)
+      );
+    }
+  }, [settings.extensions.googleMaps]);
+
   const handleSend = async (text: string, file?: File) => {
     if (!text && !file) return;
     setInputText('');
@@ -279,8 +296,17 @@ const App: React.FC = () => {
         case AppMode.Chat:
         case AppMode.Audio:
         case AppMode.Task:
-          response = await GeminiService.generateChatResponse(text, currentMode, settings);
-          addMessage({ sender: Sender.AI, type: MessageType.Text, text: response });
+          const chatResp = await GeminiService.generateChatResponse(text, currentMode, settings, contextUrls, userLocation);
+          addMessage({ sender: Sender.AI, type: MessageType.Text, text: chatResp.text, citations: chatResp.citations });
+          
+          if (settings.realTimeResponses && chatResp.text) {
+            try {
+              const audioUrl = await GeminiService.generateSpeech(chatResp.text, settings.voiceName);
+              addMessage({ sender: Sender.AI, type: MessageType.Audio, text: 'Audio Response', audioUrl });
+            } catch (speechErr) {
+              console.error("Speech generation failed:", speechErr);
+            }
+          }
           break;
         case AppMode.Search:
           const sResp = await GeminiService.generateSearchResponse(text, settings);
@@ -292,6 +318,12 @@ const App: React.FC = () => {
           response = await GeminiService.generateImage(text, imgB64, mime);
           addMessage({ sender: Sender.AI, type: MessageType.Image, text: `Generated: ${text}`, imageUrl: response });
           break;
+        case AppMode.VideoGen:
+          let vImgB64, vMime;
+          if (file) { vImgB64 = await fileToBase64(file); vMime = getMimeType(file); }
+          response = await GeminiService.generateVideo(text, vImgB64, vMime);
+          addMessage({ sender: Sender.AI, type: MessageType.Video, text: `Generated Video: ${text}`, videoUrl: response });
+          break;
         case AppMode.ImageAnalysis:
           if (!file) throw new Error("Please attach an image for analysis.");
           const b64 = await fileToBase64(file);
@@ -300,6 +332,7 @@ const App: React.FC = () => {
           addMessage({ sender: Sender.AI, type: MessageType.Text, text: response });
           break;
       }
+      setContextUrls([]);
     } catch (e) {
       addMessage({ sender: Sender.AI, type: MessageType.Error, text: (e as Error).message });
     } finally {
@@ -425,20 +458,57 @@ const App: React.FC = () => {
           </div>
 
           {/* Attached File Preview */}
-          {attachedFile && (
-            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-2xl animate-fade-in-up">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-500"><Icons.Paperclip /></div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold truncate text-gray-800 dark:text-gray-200">{attachedFile.name}</p>
-                <p className="text-[10px] text-gray-500 font-mono uppercase">{(attachedFile.size / 1024).toFixed(1)} KB</p>
-              </div>
-              <button onClick={() => setAttachedFile(null)} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"><Icons.Close /></button>
+          {(attachedFile || contextUrls.length > 0) && (
+            <div className="flex flex-wrap gap-2 animate-fade-in-up">
+              {attachedFile && (
+                <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-2xl">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-500"><Icons.Paperclip /></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold truncate text-gray-800 dark:text-gray-200">{attachedFile.name}</p>
+                    <p className="text-[10px] text-gray-500 font-mono uppercase">{(attachedFile.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button onClick={() => setAttachedFile(null)} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"><Icons.Close /></button>
+                </div>
+              )}
+              {contextUrls.map((url, idx) => (
+                <div key={idx} className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-800/30 rounded-2xl">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center text-green-500"><Icons.Link /></div>
+                  <div className="flex-1 min-w-0 max-w-[120px]">
+                    <p className="text-xs font-bold truncate text-gray-800 dark:text-gray-200">{url}</p>
+                  </div>
+                  <button onClick={() => setContextUrls(prev => prev.filter((_, i) => i !== idx))} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"><Icons.Close /></button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* URL Input */}
+          {isUrlInputOpen && (
+            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-2xl border dark:border-gray-700 animate-fade-in-up">
+              <input 
+                type="text" 
+                placeholder="Paste URL for context..." 
+                className="flex-1 bg-transparent border-none outline-none text-xs text-gray-800 dark:text-gray-200"
+                value={urlInput}
+                onChange={e => setUrlInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    if (urlInput.trim()) setContextUrls(prev => [...prev, urlInput.trim()]);
+                    setUrlInput('');
+                    setIsUrlInputOpen(false);
+                  }
+                }}
+              />
+              <button onClick={() => setIsUrlInputOpen(false)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"><Icons.Close /></button>
             </div>
           )}
 
           {/* Input Interface */}
           <div className={`relative flex items-center gap-3 bg-gray-100 dark:bg-[#1e1f20] rounded-[28px] px-5 py-3.5 shadow-sm transition-all focus-within:bg-white dark:focus-within:bg-gray-800 focus-within:shadow-lg focus-within:ring-2 focus-within:ring-blue-500/20 ${isListening ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-[#131314]' : ''}`}>
-            <button onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-blue-500 transition-all active:scale-90" title="Attach File"><Icons.Paperclip /></button>
+            <div className="flex items-center gap-1">
+              <button onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-blue-500 transition-all active:scale-90" title="Attach File"><Icons.Paperclip /></button>
+              <button onClick={() => setIsUrlInputOpen(!isUrlInputOpen)} className="text-gray-400 hover:text-green-500 transition-all active:scale-90" title="Add URL Context"><Icons.Link /></button>
+            </div>
             <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && setAttachedFile(e.target.files[0])} />
             <textarea 
               rows={1}
@@ -572,6 +642,16 @@ const App: React.FC = () => {
                       <div><p className="font-bold text-sm">Friday Pro</p><p className="text-xs text-gray-500">Enable Gemini 3 Pro Reasoning</p></div>
                     </div>
                     <button onClick={() => setAppState(p => ({...p, settings: {...p.settings, highReasoningMode: !p.settings.highReasoningMode}}))} className={`w-12 h-6 rounded-full transition-all relative ${settings.highReasoningMode ? 'bg-purple-600 shadow-md' : 'bg-gray-300 dark:bg-gray-700'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.highReasoningMode ? 'left-7' : 'left-1'}`} /></button>
+                  </div>
+                  <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg"><Icons.Brain /></div>
+                      <div><p className="font-bold text-sm">Thinking Level</p><p className="text-xs text-gray-500">Reasoning depth for complex tasks</p></div>
+                    </div>
+                    <div className="flex bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
+                      <button onClick={() => setAppState(p => ({...p, settings: {...p.settings, thinkingLevel: 'LOW'}}))} className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${settings.thinkingLevel === 'LOW' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600' : 'text-gray-500'}`}>LOW</button>
+                      <button onClick={() => setAppState(p => ({...p, settings: {...p.settings, thinkingLevel: 'HIGH'}}))} className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${settings.thinkingLevel === 'HIGH' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600' : 'text-gray-500'}`}>HIGH</button>
+                    </div>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
                     <div className="flex items-center gap-3">

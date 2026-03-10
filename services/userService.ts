@@ -21,6 +21,7 @@ const createInitialState = (): AppState => {
             saveHistory: true,
             preferredLanguage: 'English',
             voiceName: 'Zephyr',
+            thinkingLevel: 'HIGH',
             extensions: {
                 googleSearch: true,
                 googleMaps: true,

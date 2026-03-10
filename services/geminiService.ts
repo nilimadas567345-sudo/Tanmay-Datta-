@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Modality, GenerateContentResponse, GroundingChunk } from "@google/genai";
+import { GoogleGenAI, Modality, GenerateContentResponse, GroundingChunk, ThinkingLevel } from "@google/genai";
 import { ChatMessage, MessageType, Sender, AppMode, UserSettings } from '../types';
 
 // Constants
@@ -36,7 +36,7 @@ export const getMimeType = (file: File): string => {
 // Gemini Service
 let ai: GoogleGenAI;
 try {
-  ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
 } catch (error) {
   console.error("Failed to initialize GoogleGenAI:", error);
 }
@@ -56,7 +56,7 @@ export const GeminiService = {
       contents: prompt,
       config: {
         tools: tools.length > 0 ? tools : undefined,
-        thinkingConfig: (model === MODEL_TEXT_PRO) ? { thinkingBudget: 16000 } : undefined,
+        thinkingConfig: (model === MODEL_TEXT_PRO) ? { thinkingLevel: ThinkingLevel.HIGH } : undefined,
       }
     });
     

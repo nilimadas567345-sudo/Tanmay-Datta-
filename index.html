@@ -7,104 +7,13 @@
   <title>Friday</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#ffffff">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #ffffff;
-      margin: 0;
-      overflow-x: hidden;
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
     }
-    
-    .dark body {
-      background-color: #131314;
-    }
-
-    .gemini-gradient {
-      background: linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #131314 75%, #131314 100%);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      background-size: 400% 100%;
-    }
-
-    .message-appear {
-      animation: messageSlideUp 0.3s ease-out forwards;
-    }
-
-    @keyframes messageSlideUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .animate-fade-in-up {
-      animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Custom Scrollbar */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #e3e3e3;
-      border-radius: 10px;
-    }
-    .dark ::-webkit-scrollbar-thumb {
-      background: #3c4043;
-    }
-  </style>
-<script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0"
-  }
-}
-</script>
-<script>
-  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        colors: {
-          gemini: {
-            bg: '#131314',
-            surface: '#1e1f20',
-            border: '#3c4043',
-            text: '#e3e3e3',
-            accent: '#8ab4f8'
-          }
-        }
-      }
-    }
-  }
-</script>
-<link rel="stylesheet" href="/index.css">
+  </script>
 </head>
 <body>
   <div id="root"></div>
