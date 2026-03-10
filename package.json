@@ -1,8 +1,12 @@
 {
-  "name": "friday---personal-ai-assistant",
+  "name": "yaani---personal-ai-assistant",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tanmaydatta-15/Tanmaydatta.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

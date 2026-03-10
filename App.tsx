@@ -84,7 +84,7 @@ const Header: React.FC<{
   <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-40 bg-white/80 dark:bg-[#131314]/80 backdrop-blur-md border-b dark:border-gray-800">
     <div className="flex items-center gap-2">
       <Icons.GeminiStar />
-      <span className="text-xl font-medium text-gray-800 dark:text-gray-200">Friday</span>
+      <span className="text-xl font-medium text-gray-800 dark:text-gray-200">Yaani</span>
       <div className={`px-2 py-0.5 rounded-full uppercase font-bold text-[10px] ${isOffline ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
         {isOffline ? 'Offline' : 'Live'}
       </div>
@@ -115,7 +115,7 @@ const Header: React.FC<{
 const LandingState: React.FC<{ onSuggest: (text: string) => void }> = ({ onSuggest }) => (
   <div className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-40 animate-fade-in">
     <h1 className="text-4xl md:text-5xl font-semibold mb-8 text-center gemini-gradient">
-      Hello, Friday.
+      Hello, Yaani.
     </h1>
     <p className="text-xl text-gray-500 dark:text-gray-400 mb-12 text-center max-w-lg">
       How can I help you today?
@@ -282,7 +282,7 @@ const App: React.FC = () => {
         if (model && downloadedModels.has(model.id)) {
           await new Promise(r => setTimeout(r, 1200));
           const isHighPerf = model.id.includes('27b');
-          const responseText = `[HF EDGE INFERENCE]\n\nProcessing Locally: ${model.name}\n\nFriday Status: On-device private execution enabled.\n\n(Simulated local execution on your browser's NPU sandbox for ${model.hfRepo}.)`;
+          const responseText = `[HF EDGE INFERENCE]\n\nProcessing Locally: ${model.name}\n\nYaani Status: On-device private execution enabled.\n\n(Simulated local execution on your browser's NPU sandbox for ${model.hfRepo}.)`;
           addMessage({ sender: Sender.AI, type: MessageType.Text, text: responseText });
           setIsLoading(false);
           return;
@@ -512,7 +512,7 @@ const App: React.FC = () => {
             <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && setAttachedFile(e.target.files[0])} />
             <textarea 
               rows={1}
-              placeholder={isListening ? "Listening..." : "Ask Friday anything..."}
+              placeholder={isListening ? "Listening..." : "Ask Yaani anything..."}
               className="flex-1 bg-transparent border-none outline-none text-sm text-gray-800 dark:text-gray-200 placeholder-gray-500 resize-none max-h-32 scrollbar-hide"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -540,7 +540,7 @@ const App: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center shadow-lg"><Icons.HF /></div>
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Friday Hub</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">Yaani Hub</h2>
                   <div className="flex items-center gap-2">
                     <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Hugging Face On-Device</p>
                     {isSyncing && <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />}
@@ -617,7 +617,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsSettingsOpen(false)}>
           <div className="bg-white dark:bg-[#1e1f20] rounded-[28px] w-full max-w-2xl h-[85vh] shadow-2xl border dark:border-gray-800 flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center p-6 border-b dark:border-gray-800">
-              <h2 className="text-2xl font-bold tracking-tight">Friday Settings</h2>
+              <h2 className="text-2xl font-bold tracking-tight">Yaani Settings</h2>
               <button onClick={() => setIsSettingsOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><Icons.Close /></button>
             </div>
             
@@ -639,7 +639,7 @@ const App: React.FC = () => {
                   <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-lg"><Icons.Brain /></div>
-                      <div><p className="font-bold text-sm">Friday Pro</p><p className="text-xs text-gray-500">Enable Gemini 3 Pro Reasoning</p></div>
+                      <div><p className="font-bold text-sm">Yaani Pro</p><p className="text-xs text-gray-500">Enable Gemini 3 Pro Reasoning</p></div>
                     </div>
                     <button onClick={() => setAppState(p => ({...p, settings: {...p.settings, highReasoningMode: !p.settings.highReasoningMode}}))} className={`w-12 h-6 rounded-full transition-all relative ${settings.highReasoningMode ? 'bg-purple-600 shadow-md' : 'bg-gray-300 dark:bg-gray-700'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.highReasoningMode ? 'left-7' : 'left-1'}`} /></button>
                   </div>
@@ -689,7 +689,7 @@ const App: React.FC = () => {
             </div>
             
             <div className="p-4 bg-gray-50 dark:bg-[#131314] border-t dark:border-gray-800 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest px-6">
-              <span>Friday Stable Build</span>
+              <span>Yaani Stable Build</span>
               <span>v4.3.0 Private Beta</span>
             </div>
           </div>

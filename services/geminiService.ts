@@ -7,7 +7,7 @@ export const STARTUP_MESSAGE: ChatMessage = {
   id: 'start-1',
   sender: Sender.AI,
   type: MessageType.Text,
-  text: 'Friday is online and ready. Select a mode or ask me anything!',
+  text: 'Yaani is online and ready. Select a mode or ask me anything!',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
 };
 
